@@ -24,7 +24,7 @@ unraidwold_start(){
     if unraidwold_running; then
       REPLY="Already started"
     else
-      nohup $BINARY $1 $2 $3 $4 $5 $6 > /dev/null &
+      nohup "$BINARY" "$@" > /dev/null &
     fi
     log "$DAEMON...  $REPLY."
 }
@@ -68,14 +68,14 @@ unraidwold_load()
         logoptions="--log $LOGFILE"
     fi
 
-    unraidwold_start --interface $INTERFACE $interfacemode $logoptions
+    unraidwold_start --interface "$INTERFACE" $interfacemode $logoptions
     fi
 
  }
 
 case "$1" in
 'start')
-  unraidwold_start $2 $3 $4 $5 $6
+  unraidwold_start "${@:2}"
   ;;
 'stop')
   unraidwold_stop

@@ -30,7 +30,13 @@ else
     cd "$DIR"
     cp --recursive --dereference . "${TMPDIR}/"
     cd "$TMPDIR/"
-    makepkg -l y -c y "${PACKAGE}"
+    if command -v makepkg >/dev/null 2>&1; then
+      # Use the native Unraid packaging tool when it is available.
+      makepkg -l y -c y "${PACKAGE}"
+    else
+      # Fall back to a plain tar.xz archive when running on a non-Unraid host.
+      tar -cJf "${PACKAGE}" .
+    fi
     cd "$ARCHIVE/"
     md5sum $(basename "$PACKAGE") > "$MD5"
     rm -rf "$TMPDIR"

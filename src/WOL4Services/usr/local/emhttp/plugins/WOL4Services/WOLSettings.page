@@ -20,7 +20,7 @@ Tag="share-alt"
 <?
 $members = parse_ini_file('state/network.ini',true);
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-exec("ls --indicator-style=none /sys/class/net|grep -P '^eth[1-9][0-9]*$'",$ports);
+exec("ls --indicator-style=none /sys/class/net | grep -v '^lo$'", $ports);
 $disabled = _var($var,'fsState')!='Stopped' ? 'disabled' : '';
 $width    = [166,300];
 $file    = '/boot/config/wol.cfg';
@@ -115,13 +115,22 @@ _(Suspend PM mode)_:
 
 :WOL_run_suspmode_help:
 
-_(Interface to listen on)_:
-: <select id="INTERFACE" name="INTERFACE" >
-  <?=mk_option(_var($eth0,'INTERFACE'),'eth0','eth0','selected')?>
-  <?foreach ($ports as $port):?>
-  <?if (!locked('eth0',$port)) echo mk_option_check($current['INTERFACE'],$port,$port)?>
-  <?endforeach;?>
-  </select>
+_(Interface(s) to listen on)_:
+: <?php
+  $sel = array();
+  if (isset($current['INTERFACE'])) {
+    foreach (explode(',', $current['INTERFACE']) as $s) $sel[] = trim($s);
+  }
+?>
+: <input type="hidden" id="INTERFACE" name="INTERFACE" value="<?=isset($current['INTERFACE']) ? htmlspecialchars($current['INTERFACE']) : 'eth0'?>">
+: <?php
+    foreach ($ports as $port) {
+      if (!locked('eth0',$port)) {
+        $isSel = in_array($port,$sel) ? 'checked' : '';
+        echo "<label style=\"display:block;margin-bottom:4px;\"><input type=\"checkbox\" class=\"WOL_interface_cb\" value=\"$port\" $isSel onchange=\"var values=[];var boxes=document.querySelectorAll('.WOL_interface_cb:checked');for(var i=0;i<boxes.length;i++){values.push(boxes[i].value);}document.getElementById('INTERFACE').value=values.join(',');\"> $port</label>\n";
+      }
+    }
+?>
 
 :WOL_interface_help:
 
